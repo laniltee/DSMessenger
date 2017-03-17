@@ -113,6 +113,9 @@ public class ChatServer {
                             System.out.println("New Client Added: " + name);
                             names.add(name);
                             writerMap.put(name, out);
+                            
+                            out.println("CLIENTLIST" + getAllClients());
+                            
                             break;
                         }
                     }
@@ -123,7 +126,7 @@ public class ChatServer {
                 // this client can receive broadcast messages.
                 out.println("NAMEACCEPTED");
                 writers.add(out);
-
+                
                 // Accept messages from this client and broadcast them.
                 // Ignore other clients that cannot be broadcasted to.
                 while (true) {
@@ -183,6 +186,22 @@ public class ChatServer {
                 }
             }
             return unicastClient;
+        }
+        
+        //Removes specified client from the list
+        public void removeClient(String clientName){
+            writerMap.remove(clientName);
+            System.out.println("Client Removed: " + clientName);
+        }
+        
+        //Returns a list of clients to the client side
+        public static String getAllClients(){
+            String[] keys = writerMap.keySet().toArray(new String[0]);
+            String clientArray = "All";
+            for (int i = 0; i < keys.length; i++) {
+                clientArray = clientArray + "," + keys[i];
+            }
+            return clientArray;
         }
     }
 }
