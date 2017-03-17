@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import javax.swing.DefaultListModel;
 import javax.swing.JComboBox;
 
 import javax.swing.JFrame;
@@ -15,6 +16,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListModel;
 
 /**
  * A simple Swing-based client for the chat server. Graphically it is a frame with a text field for entering messages and a textarea to see the whole dialog.
@@ -32,7 +34,8 @@ public class ChatClient {
     private String clientName;
     private String[] allClients = {"All"};
     private boolean isUnicast;
-    JComboBox clientList = new JComboBox(allClients);
+    DefaultListModel clientsModel = new DefaultListModel();
+    JList clientList = new JList(clientsModel);
 
     /**
      * Constructs the client by laying out the GUI and registering a listener with the textfield so that pressing Return in the listener sends the textfield contents to the server. Note however that the textfield is initially NOT editable, and only becomes editable AFTER the client receives the NAMEACCEPTED message from the server.
@@ -56,12 +59,17 @@ public class ChatClient {
             public void actionPerformed(ActionEvent e) {
                 //Here we must check whether user has selected a recipent from combo boc
                 //If selected we must send the message to intended recipent only
-                String selectedClient = clientList.getSelectedItem().toString();
-                if (selectedClient.equals("All")) {
+                if(clientList.isSelectionEmpty()){
                     out.println(textField.getText());
-                } else {
-                    isUnicast = true;
-                    out.println(selectedClient + ">>" + textField.getText());
+                }
+                int selectedItems[] = clientList.getSelectedIndices();
+                for (int i = 0; i < selectedItems.length; i++) {
+                    String selectedItem = clientsModel.get(selectedItems[i]).toString();
+                    if(selectedItem.equals("All")){
+                        out.println(textField.getText());
+                        break;
+                    }
+                    out.println(selectedItem + ">>" + textField.getText());
                 }
                 textField.setText("");
             }
@@ -117,12 +125,13 @@ public class ChatClient {
             } else if (line.startsWith("CLIENTLIST")) {
                 String mixString = line.substring(10);
                 String clientArray[] = mixString.split(",");
-                clientList.removeAllItems();
+                clientsModel.clear();
+                int clientIndex = 0;
                 for (int i = 0; i < clientArray.length; i++) {
                     if (clientArray[i].equals(clientName)) {
                         continue;
                     }
-                    clientList.addItem(clientArray[i]);
+                    clientsModel.add(clientIndex++, clientArray[i]);
                 }
             }
         }
